@@ -1,4 +1,6 @@
-﻿namespace TunnelWorm.Core
+﻿using TunnelWorm.Configuration;
+
+namespace TunnelWorm.Core
 {
     using System;
     using System.Windows;
@@ -34,6 +36,9 @@
 
             _container
                 .PerRequest<MainWindowViewModel>();
+
+            _container.
+                Instance(new Settings());
 
             Initialize();
         }

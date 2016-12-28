@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pwbx="clr-namespace:TunnelWorm.Helpers"
     xmlns:controls="clr-namespace:TunnelWorm.Helpers.Controls"
+    xmlns:converters="clr-namespace:TunnelWorm.Helpers.Converters"
     Title="{Binding Title}"
     Width="500"
     Height="410"
@@ -15,10 +16,16 @@
     SaveWindowPosition="True"
     ShowMinButton="True"
     mc:Ignorable="d">
+
+    <ma:MetroWindow.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+    </ma:MetroWindow.Resources>
+
+
     <ma:MetroWindow.RightWindowCommands>
         <ma:WindowCommands>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding Path=ConnectionStatus}" />
+                <TextBlock Text="{Binding Path=ConnectionStatus, UpdateSourceTrigger=PropertyChanged}" />
                 <!--<Grid>
                     <Ellipse Margin="3,0,0,0" Width="16" Height="16" Fill="#FF2EFF00"/>
                     <Ellipse Margin="3,0,0,0" Width="8" Height="8" Fill="Red"/>
@@ -151,15 +158,17 @@
                         <RadioButton
                             x:Name="HttpRadio"
                             Content="HTTP"
-                            IsChecked="True" />
+                            IsChecked="{Binding Path=SelectedProxy, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static pwbx:ProxyTypes.Http}}"  />
                         <RadioButton
                             x:Name="Socks4Radio"
                             Margin="15,0,0,0"
-                            Content="SOCKS4" />
+                            Content="SOCKS4" 
+                            IsChecked="{Binding Path=SelectedProxy, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static pwbx:ProxyTypes.Socks4}}" />
                         <RadioButton
                             x:Name="Socks5Radio"
                             Margin="15,0,0,0"
-                            Content="SOCKS5" />
+                            Content="SOCKS5" 
+                            IsChecked="{Binding Path=SelectedProxy, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static pwbx:ProxyTypes.Socks5}}" />
                     </StackPanel>
 
                     <TextBox
@@ -224,13 +233,13 @@
                             <TextBox
                                 Margin="0,0,1,0"
                                 ma:TextBoxHelper.Watermark="Local (or ip address)"
-                                Text="{Binding Path=ForwardedAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                Text="{Binding Path=ForwardedAddress, ValidatesOnDataErrors=True, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBox
                                 Grid.Column="1"
                                 MinWidth="75"
                                 Margin="1,0,0,0"
                                 ma:TextBoxHelper.Watermark="Port"
-                                Text="{Binding Path=ForwardedPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                Text="{Binding Path=ForwardedPort, ValidatesOnDataErrors=True, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </Grid>
 
                         <Grid
@@ -260,15 +269,15 @@
                                 <RadioButton
                                     x:Name="LocalRadio"
                                     Margin="2"
-                                    Content="Local" />
+                                    Content="Local" IsChecked="{Binding Path=SelectedTunnel, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static pwbx:TunnelTypes.Local}}" />
                                 <RadioButton
                                     x:Name="RemoteRadio"
                                     Margin="2"
-                                    Content="Remote" />
+                                    Content="Remote" IsChecked="{Binding Path=SelectedTunnel, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static  pwbx:TunnelTypes.Remote}}" />
                                 <RadioButton
                                     x:Name="DynamicRadio"
                                     Margin="2"
-                                    Content="Dynamic" />
+                                    Content="Dynamic" IsChecked="{Binding Path=SelectedTunnel, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static  pwbx:TunnelTypes.Dynamic}}" />
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="3" Margin="0,4,0,0">
@@ -294,18 +303,22 @@
             <GroupBox
                 Grid.Row="3"
                 Grid.Column="0"
+                Grid.ColumnSpan="2"
                 Margin="1"
                 BorderBrush="#FFA6A6A6">
                 <Grid Margin="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Button
-                        Grid.Column="0"
+                        Grid.Column="0" Margin="2"
                         cal:Message.Attach="[Event Click] = [Action Connect]"
-                        Content="{Binding Path=ConnectionToggle}" />
+                        Content="Connect" />
+                    <Button
+                        Grid.Column="1" Margin="2"
+                        cal:Message.Attach="[Event Click] = [Action Disconnect]"
+                        Content="Disconnect" />
                 </Grid>
             </GroupBox>
         </Grid>

@@ -1,12 +1,11 @@
-﻿using TunnelWorm.Helpers;
-
-namespace TunnelWorm.Configuration
+﻿namespace TunnelWorm.Configuration
 {
     using System.IO;
     using System.Xml.Serialization;
     using System.Collections.Generic;
 
     using Models;
+    using Helpers;
 
     public class Settings
     {
@@ -17,8 +16,9 @@ namespace TunnelWorm.Configuration
 
         #endregion
 
-        public SecureShellSettings SecureShellSettings { get; set; } = new SecureShellSettings();
         public ProxySettings ProxySettings { get; set; } = new ProxySettings();
+        public SecureShellSettings SecureShellSettings { get; set; } = new SecureShellSettings();
+        
         public List<ForwardedPortModel> Ports { get; set; } = new List<ForwardedPortModel>();
         
         public void Load()
@@ -34,12 +34,13 @@ namespace TunnelWorm.Configuration
                 settings = (Settings)serializer.Deserialize(file);
             }
 
-            SecureShellSettings = settings.SecureShellSettings;
             ProxySettings = settings.ProxySettings;
+            SecureShellSettings = settings.SecureShellSettings;
+            
             Ports = settings.Ports;
 
             if (settings.SecureShellSettings.ProtectedHostPassword != null)
-                settings.SecureShellSettings.HostPassword =settings.SecureShellSettings.ProtectedHostPassword.Unprotect();
+                settings.SecureShellSettings.HostPassword = settings.SecureShellSettings.ProtectedHostPassword.Unprotect();
 
             if (settings.ProxySettings.ProtectedProxyPasswd != null)
                 settings.ProxySettings.ProxyPasswd = settings.ProxySettings.ProtectedProxyPasswd.Unprotect();

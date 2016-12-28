@@ -11,6 +11,8 @@ using ProxyTypes = Renci.SshNet.ProxyTypes;
 
 namespace TunnelWorm.Providers
 {
+    public delegate void ConnectionStatusHandler(ConnectionStatus stat);
+
     public class SecureShellTunnelProvider
         : ISecureShellTunnelProvider
     {
@@ -29,8 +31,7 @@ namespace TunnelWorm.Providers
 
         #endregion
 
-        public delegate void ConnectionStatusHandler(ConnectionStatus stat);
-        public event ConnectionStatusHandler ConnectionStatusChanged;
+        private event ConnectionStatusHandler ConnectionStatusChanged;
 
         public SecureShellTunnelProvider()
         {
@@ -152,7 +153,7 @@ namespace TunnelWorm.Providers
                         _proxy.ProxyHostName,
                         _proxy.ProxyPort,
                         _proxy.ProxyUsername,
-                        _proxy.ProxyPasswd.GetString()
+                        _proxy.ProxyPasswd?.GetString()
                         );
                 }
                 else //if (_proxy.ProxyAuthMethod == ProxyAuthMethod.PrivateKey)
@@ -234,5 +235,14 @@ namespace TunnelWorm.Providers
             }
             return _client.IsConnected;
         }
+
+        #region Implementation of ISecureShellTunnelProvider
+
+        public void SubscribeToConnectionStatus(ConnectionStatusHandler handler)
+        {
+            ConnectionStatusChanged += handler;
+        }
+
+        #endregion
     }
 }

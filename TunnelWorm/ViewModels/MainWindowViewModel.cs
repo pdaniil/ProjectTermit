@@ -1,69 +1,46 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Caliburn.Micro;
-using TunnelWorm.Configuration;
-using TunnelWorm.Helpers;
-using TunnelWorm.Models;
-using TunnelWorm.Providers;
-using TunnelWorm.Providers.Contracts;
-
-namespace TunnelWorm.ViewModels
+﻿namespace TunnelWorm.ViewModels
 {
-    public class MainWindowViewModel : Screen
-    {
-        private readonly ILoggerProvider _loggerProvider;
+    using System.Linq;
+    using System.ComponentModel;
 
+    using Caliburn.Micro;
+
+    using Models;
+    using Helpers;
+    using Configuration;
+    using Providers.Contracts;
+
+    public class MainWindowViewModel
+        : Screen, IDataErrorInfo
+    {
         #region Private Members
 
-        private readonly SecureShellTunnelProvider _secureShellTunnelProvider;
+        private readonly Settings _settings;
+        private readonly ILoggerProvider _loggerProvider;
+        private readonly ISecureShellTunnelProvider _secureShellTunnelProvider;
+
         private BindableCollection<ForwardedPortModel> _forwardedPorts;
         private ForwardedPortModel _selectedPort;
-
-        private bool _httpRadio;
-        private bool _socks4Radio;
-        private bool _socks5Radio;
-        private bool _localRadio;
-        private bool _remoteRadio;
-        private bool _dynamicRadio;
 
         private string _forwardedAddress;
         private string _forwardedPort;
         private bool _enableProxy;
 
         private string _connectionStatus;
-        private string _connectionToggle;
-        private string _title;
-        private ConnectionStatus ConStat;
+
+        private ConnectionStatus _connectionStatusType;
+        private TunnelTypes _selectedTunnel;
+
+        private string _remoteAddress;
+        private string _remotePort;
 
         #endregion
 
-        public Settings Settings { get; set; } = new Settings();
-        public SecureShellSettings SecureShellSettings => Settings?.SecureShellSettings;
-        public ProxySettings ProxySettings => Settings?.ProxySettings;
+        public SecureShellSettings SecureShellSettings => _settings?.SecureShellSettings;
+        public ProxySettings ProxySettings => _settings?.ProxySettings;
 
         public bool ProxyBoxEnabled { get; set; }
         public bool RemoteBoxEnabled { get; set; }
-
-        public string ConnectionToggle
-        {
-            get { return _connectionToggle; }
-            set
-            {
-                _connectionToggle = value;
-                NotifyOfPropertyChange();
-            }
-        }
-
-        public string Title
-        {
-            get { return _title; }
-            set
-            {
-                _title = value;
-                NotifyOfPropertyChange();
-            }
-        }
 
         public string ConnectionStatus
         {
@@ -87,69 +64,26 @@ namespace TunnelWorm.ViewModels
             }
         }
 
-        public bool HttpRadio
+        public ProxyTypes SelectedProxy
         {
-            get { return _httpRadio; }
+            get { return ProxySettings.ProxyType; }
             set
             {
-                _httpRadio = value;
-                if (value)
-                    ProxySettings.ProxyType = ProxyTypes.Http;
+                ProxySettings.ProxyType = value;
+                NotifyOfPropertyChange();
             }
         }
-
-        public bool Socks4Radio
+        public TunnelTypes SelectedTunnel
         {
-            get { return _socks4Radio; }
+            get { return _selectedTunnel; }
             set
             {
-                _socks4Radio = value;
-                if (value)
-                    ProxySettings.ProxyType = ProxyTypes.Socks4;
-            }
-        }
-
-        public bool Socks5Radio
-        {
-            get { return _socks5Radio; }
-            set
-            {
-                _socks5Radio = value;
-                if (value)
-                    ProxySettings.ProxyType = ProxyTypes.Socks5;
-            }
-        }
-
-        public bool LocalRadio
-        {
-            get { return _localRadio; }
-            set
-            {
-                _localRadio = value;
+                _selectedTunnel = value;
                 NotifyOfPropertyChange();
             }
         }
 
-        public bool RemoteRadio
-        {
-            get { return _remoteRadio; }
-            set
-            {
-                _remoteRadio = value;
-                RemoteBoxEnabled = _remoteRadio;
-                NotifyOfPropertyChange(nameof(RemoteBoxEnabled));
-            }
-        }
-
-        public bool DynamicRadio
-        {
-            get { return _dynamicRadio; }
-            set
-            {
-                _dynamicRadio = value;
-                NotifyOfPropertyChange();
-            }
-        }
+        #region Forwarded
 
         public string ForwardedAddress
         {
@@ -160,7 +94,6 @@ namespace TunnelWorm.ViewModels
                 NotifyOfPropertyChange();
             }
         }
-
         public string ForwardedPort
         {
             get { return _forwardedPort; }
@@ -171,8 +104,30 @@ namespace TunnelWorm.ViewModels
             }
         }
 
-        public string RemoteAddress { get; set; }
-        public string RemotePort { get; set; }
+        #endregion
+
+        #region Remote
+
+        public string RemoteAddress
+        {
+            get { return _remoteAddress; }
+            set
+            {
+                _remoteAddress = value;
+                NotifyOfPropertyChange();
+            }
+        }
+        public string RemotePort
+        {
+            get { return _remotePort; }
+            set
+            {
+                _remotePort = value;
+                NotifyOfPropertyChange();
+            }
+        }
+
+        #endregion
 
         public ForwardedPortModel SelectedForwardedPort
         {
@@ -183,7 +138,6 @@ namespace TunnelWorm.ViewModels
                 NotifyOfPropertyChange();
             }
         }
-
         public BindableCollection<ForwardedPortModel> ForwardedPorts
         {
             get { return _forwardedPorts; }
@@ -194,100 +148,56 @@ namespace TunnelWorm.ViewModels
             }
         }
 
-        public MainWindowViewModel(ISecureShellTunnelProvider secureShellTunnelProvider, ILoggerProvider loggerProvider)
+        public MainWindowViewModel(ISecureShellTunnelProvider secureShellTunnelProvider, ILoggerProvider loggerProvider, Settings settings)
         {
+            _settings = settings;
             _loggerProvider = loggerProvider;
+            
+            _secureShellTunnelProvider = secureShellTunnelProvider;
 
             _loggerProvider.Write("App started.");
-            _secureShellTunnelProvider = secureShellTunnelProvider as SecureShellTunnelProvider;
-            if (_secureShellTunnelProvider != null)
-                _secureShellTunnelProvider.ConnectionStatusChanged += SecureShellTunnelProviderOnConnectionStatusChanged;
+            _secureShellTunnelProvider.SubscribeToConnectionStatus(ConnectionStatusChanged);
 
-            //Set defaults
-            HttpRadio = true;
-            LocalRadio = true;
+            SelectedProxy = ProxyTypes.None;
+            SelectedTunnel = TunnelTypes.Local;
 
             //Try open config
-            Settings.Load();
+            _settings.Load();
 
-            ForwardedPorts = Settings.Ports.ToBindableCollection();
+            ForwardedPorts = _settings.Ports.ToBindableCollection();
 
-            EnableProxy = Settings.ProxySettings.UseProxy;
+            EnableProxy = _settings.ProxySettings.UseProxy;
 
-            ConnectionToggle = "Connect";
             ConnectionStatus = Helpers.ConnectionStatus.Disconnected.ToString();
-            ConStat = Helpers.ConnectionStatus.Disconnected;
-
-            Title = "Tunnel Worm";
-        }
-
-        private void SecureShellTunnelProviderOnConnectionStatusChanged(ConnectionStatus stat)
-        {
-            ConnectionStatus = stat.ToString();
-            ConStat = stat;
-            switch (stat)
-            {
-                case Helpers.ConnectionStatus.Established:
-                    ConnectionToggle = "Disconnect";
-                    break;
-                case Helpers.ConnectionStatus.Failed:
-                    ConnectionToggle = "Stop";
-                    break;
-                case Helpers.ConnectionStatus.Reconnecting:
-                    ConnectionToggle = "Stop";
-                    break;
-                case Helpers.ConnectionStatus.Connecting:
-                    ConnectionToggle = "Disconnect";
-                    break;
-                case Helpers.ConnectionStatus.Disconnected:
-                    ConnectionToggle = "Connect";
-                    break;
-            }
+            _connectionStatusType = Helpers.ConnectionStatus.Disconnected;
         }
 
         public void AddPort()
         {
-            if (RemoteRadio)
+            switch (SelectedTunnel)
             {
-                if (ValidateFields(
-                    Pairing.Of("Remote port", RemotePort),
-                    Pairing.Of("Remote addres", RemoteAddress),
-                    Pairing.Of("Forwarded port", ForwardedPort),
-                    Pairing.Of("Forwarded address", ForwardedAddress)))
-                {
-                    var p = new ForwardedPortModel(TunnelTypes.Remote, uint.Parse(ForwardedPort), ForwardedAddress,
-                        uint.Parse(RemotePort), RemoteAddress);
-                    ForwardedPorts.Add(p);
-                }
-            }
-            else if (DynamicRadio)
-            {
-                if (ValidateFields(Pairing.Of("Forwarded port", ForwardedPort)))
-                {
-                    var p = new ForwardedPortModel(TunnelTypes.Dynamic, uint.Parse(ForwardedPort));
-                    ForwardedPorts.Add(p);
-                }
-            }
-            else if (LocalRadio)
-            {
-                if (ValidateFields(
-                    Pairing.Of("Forwarded port", ForwardedPort),
-                    Pairing.Of("Forwarded address", ForwardedAddress)))
-                {
-                    var p = new ForwardedPortModel(TunnelTypes.Local, uint.Parse(ForwardedPort));
-                    ForwardedPorts.Add(p);
-                }
+                case TunnelTypes.Remote:
+                    var remote = new ForwardedPortModel(TunnelTypes.Remote, uint.Parse(ForwardedPort), ForwardedAddress, uint.Parse(RemotePort), RemoteAddress);
+                    ForwardedPorts.Add(remote);
+                    break;
+                case TunnelTypes.Dynamic:
+                    var dynamic = new ForwardedPortModel(TunnelTypes.Dynamic, uint.Parse(ForwardedPort));
+                    ForwardedPorts.Add(dynamic);
+                    break;
+                case TunnelTypes.Local:
+                    var local = new ForwardedPortModel(TunnelTypes.Local, uint.Parse(ForwardedPort));
+                    ForwardedPorts.Add(local);
+                    break;
             }
         }
-
         public void RemovePort()
         {
-            if (ConStat == Helpers.ConnectionStatus.Disconnected)
+            if (_connectionStatusType == Helpers.ConnectionStatus.Disconnected)
             {
                 ForwardedPorts.Remove(SelectedForwardedPort);
 
                 _secureShellTunnelProvider.SetPortsSettings(ForwardedPorts);
-                Settings.Ports = ForwardedPorts.ToList();
+                _settings.Ports = ForwardedPorts.ToList();
 
                 SaveSettings();
             }
@@ -295,70 +205,84 @@ namespace TunnelWorm.ViewModels
 
         public void Connect()
         {
-            switch (ConStat)
-            {
-                case Helpers.ConnectionStatus.Disconnected:
-                    StartConnection();
-                    break;
-                default:
-                    StopConnection();
-                    break;
-            }
+            if(_connectionStatusType == Helpers.ConnectionStatus.Disconnected)
+                EstablishConnection();
         }
-
-        private void StartConnection()
+        public void Disconnect()
         {
-            if (ValidateFields(
-                Pairing.Of("Host name", SecureShellSettings.HostName),
-                Pairing.Of("Host username", SecureShellSettings.HostUsername),
-                Pairing.Of("Host port", SecureShellSettings.HostPort.ToString())))
-            {
-                _secureShellTunnelProvider.SetSecureShellSession(SecureShellSettings);
-
-                if (EnableProxy && ValidateFields(
-                    Pairing.Of("Proxy address", ProxySettings.ProxyHostName),
-                    Pairing.Of("Proxy port", ProxySettings.ProxyPort.ToString())))
-                {
-                    _secureShellTunnelProvider.SetProxySettings(ProxySettings);
-                }
-                _secureShellTunnelProvider.SetPortsSettings(ForwardedPorts);
-
-                Settings.Ports = ForwardedPorts.ToList();
-
-                SaveSettings();
-
-                _secureShellTunnelProvider.Connect();
-            }
+            if(_connectionStatusType == Helpers.ConnectionStatus.Established)
+                BreakConnection();
         }
 
-        private void StopConnection()
+        private void EstablishConnection()
+        {
+            _secureShellTunnelProvider.SetSecureShellSession(SecureShellSettings);
+
+            _secureShellTunnelProvider.SetProxySettings(ProxySettings);
+
+            _secureShellTunnelProvider.SetPortsSettings(ForwardedPorts);
+
+            _settings.Ports = ForwardedPorts.ToList();
+
+            SaveSettings();
+
+            _secureShellTunnelProvider.Connect();
+
+        }
+        private void BreakConnection()
         {
             _secureShellTunnelProvider.Disconnect();
         }
 
         private void SaveSettings()
         {
-            Settings.Save();
+            _settings.Save();
         }
 
-        private bool ValidateFields(params KeyValuePair<string, string>[] fields)
+        private void ConnectionStatusChanged(ConnectionStatus connectionStatusType)
         {
-            var message = new StringBuilder("Please, check fields: \n");
-            var res = true;
+            _connectionStatusType = connectionStatusType;
 
-            foreach (var f in fields)
+            switch (connectionStatusType)
             {
-                if (string.IsNullOrWhiteSpace(f.Value))
-                {
-                    message.AppendLine(f.Key);
-                    res = false;
-                }
+                case Helpers.ConnectionStatus.Established:
+                    ConnectionStatus = "Established";
+                    break;
+                case Helpers.ConnectionStatus.Failed:
+                    ConnectionStatus = "Failed";
+                    break;
+                case Helpers.ConnectionStatus.Reconnecting:
+                    ConnectionStatus = "Reconnecting";
+                    break;
+                case Helpers.ConnectionStatus.Connecting:
+                    ConnectionStatus = "Connecting";
+                    break;
+                case Helpers.ConnectionStatus.Disconnected:
+                    ConnectionStatus = "Disconnected";
+                    break;
             }
-            if (!res)
-            {
-                //ToDo: show message boxwith error
-            }
-            return res;
         }
+
+        #region Implementation of IDataErrorInfo
+
+        public string this[string name]
+        {
+            get
+            {
+                string result = null;
+
+                if (name == "ForwardedPort")
+                {
+                    if (ForwardedPort != null && !ForwardedPort.IsPort())
+                        result = "Invalid port format";
+                }
+
+                return result;
+            }
+        }
+
+        public string Error => null;
+
+        #endregion
     }
 }

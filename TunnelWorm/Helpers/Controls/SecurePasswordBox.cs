@@ -1,13 +1,17 @@
-﻿using System.Security;
-using System.Windows;
-using System.Windows.Controls;
-
-namespace TunnelWorm.Helpers.Controls
+﻿namespace TunnelWorm.Helpers.Controls
 {
+    using System.Windows;
+    using System.Security;
+    using System.Windows.Controls;
+
     public class SecurePasswordBox
     {
+        #region Private Members
+
         private static bool _updating = false;
-        private static SecureString secureStr = new SecureString();
+        private static SecureString _secureString = new SecureString();
+
+        #endregion
 
         /// <summary>
         /// SecurePassword Attached Dependency Property
@@ -21,29 +25,21 @@ namespace TunnelWorm.Helpers.Controls
         /// <summary>
         /// Handles changes to the SecurePassword property.
         /// </summary>
-        private static void OnSecurePasswordChanged(
-            DependencyObject d,
-            DependencyPropertyChangedEventArgs e)
+        private static void OnSecurePasswordChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            PasswordBox password = d as PasswordBox;
+            var password = d as PasswordBox;
+
             if (password != null)
-            {
-                // Disconnect the handler while we're updating.
                 password.PasswordChanged -= PasswordChanged;
-            }
 
             if (e.NewValue != null)
             {
                 if (!_updating)
-                {
-                    secureStr = e.NewValue as SecureString;
-                }
+                    _secureString = e.NewValue as SecureString;
             }
             else
-            {
-                secureStr = new SecureString();
-            }
-            // Now, reconnect the handler.
+                _secureString = new SecureString();
+
             password.PasswordChanged += PasswordChanged;
         }
 
@@ -66,7 +62,7 @@ namespace TunnelWorm.Helpers.Controls
         /// <summary>
         /// Handles the password change event.
         /// </summary>
-        static void PasswordChanged(object sender, RoutedEventArgs e)
+        public static void PasswordChanged(object sender, RoutedEventArgs e)
         {
             PasswordBox password = sender as PasswordBox;
             _updating = true;

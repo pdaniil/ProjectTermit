@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.Helpers.Converters
+﻿namespace Termit.Helpers.Converters
 {
     using System;
     using System.Windows.Data;

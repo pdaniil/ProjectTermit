@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.Providers.Contracts
+﻿namespace Termit.Providers.Contracts
 {
     using System.Collections.Generic;
 

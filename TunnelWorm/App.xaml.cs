@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm
+﻿namespace Termit
 {
     using System.Windows;
 

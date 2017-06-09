@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.Configuration
+﻿namespace Termit.Configuration
 {
     using System.IO;
     using System.Xml.Serialization;

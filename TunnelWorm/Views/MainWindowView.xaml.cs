@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Forms;
 using Application = System.Windows.Application;
 
-namespace TunnelWorm.Views
+namespace Termit.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

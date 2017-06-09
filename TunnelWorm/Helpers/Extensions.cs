@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.Helpers
+﻿namespace Termit.Helpers
 {
     using System;
     using System.Text;

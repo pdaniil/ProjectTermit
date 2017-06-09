@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Renci.SshNet;
-using TunnelWorm.Helpers;
+using Termit.Helpers;
 
-namespace TunnelWorm.Models
+namespace Termit.Models
 {
     public class ForwardedPortModel
     {

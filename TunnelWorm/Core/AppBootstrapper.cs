@@ -1,6 +1,6 @@
-﻿using TunnelWorm.Configuration;
+﻿using Termit.Configuration;
 
-namespace TunnelWorm.Core
+namespace Termit.Core
 {
     using System;
     using System.Windows;

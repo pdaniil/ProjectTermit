@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.ViewModels
+﻿namespace Termit.ViewModels
 {
     using System.Linq;
     using System.ComponentModel;

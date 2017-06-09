@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TunnelWorm.Providers.Contracts
+namespace Termit.Providers.Contracts
 {
     public interface ILoggerProvider
     {

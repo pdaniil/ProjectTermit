@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading;
 using Renci.SshNet;
 using Renci.SshNet.Common;
-using TunnelWorm.Helpers;
-using TunnelWorm.Models;
-using TunnelWorm.Providers.Contracts;
+using Termit.Helpers;
+using Termit.Models;
+using Termit.Providers.Contracts;
 using ProxyTypes = Renci.SshNet.ProxyTypes;
 
-namespace TunnelWorm.Providers
+namespace Termit.Providers
 {
     public delegate void ConnectionStatusHandler(ConnectionStatus stat);
 

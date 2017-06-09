@@ -1,8 +1,8 @@
 ﻿<Application
-    x:Class="TunnelWorm.App"
+    x:Class="Termit.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:core="clr-namespace:TunnelWorm.Core">
+    xmlns:core="clr-namespace:Termit.Core">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

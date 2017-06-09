@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TunnelWorm.Providers.Contracts;
+using Termit.Providers.Contracts;
 
-namespace TunnelWorm.Providers
+namespace Termit.Providers
 {
     public class AppLoggerProvider :
         ILoggerProvider

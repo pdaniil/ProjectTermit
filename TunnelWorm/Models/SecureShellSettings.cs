@@ -3,7 +3,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Caliburn.Micro;
 
-namespace TunnelWorm.Models
+namespace Termit.Models
 {
     using Helpers;
 

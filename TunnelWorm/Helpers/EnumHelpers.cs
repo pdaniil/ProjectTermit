@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.Helpers
+﻿namespace Termit.Helpers
 {
     public enum ProxyTypes
     {

@@ -1,4 +1,4 @@
-﻿namespace TunnelWorm.Helpers.Controls
+﻿namespace Termit.Helpers.Controls
 {
     using System.Windows;
     using System.Security;
